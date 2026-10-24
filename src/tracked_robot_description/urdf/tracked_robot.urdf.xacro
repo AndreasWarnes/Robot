@@ -1,0 +1,54 @@
+<?xml version="1.0"?>
+<robot name="tracked_robot" xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+  <!-- ===== Mål (meter / kg) ===== -->
+  <xacro:property name="chassis_length" value="0.2794"/>
+  <xacro:property name="chassis_width"  value="0.1819"/>
+  <xacro:property name="chassis_height" value="0.0487"/>
+  <xacro:property name="chassis_mass"   value="1.5"/>
+  <!-- høyde fra bakken til senteret av chassiset; justeres når beltene kommer -->
+  <xacro:property name="chassis_z"      value="0.05"/>
+
+  <!-- ===== Punkt på bakken under roboten ===== -->
+  <link name="base_footprint"/>
+
+  <!-- ===== Chassis ===== -->
+  <link name="base_link">
+
+    <!-- det du SER: Fusion-meshen (mm -> m) -->
+    <visual>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <mesh filename="package://tracked_robot_description/meshes/chassis.stl" scale="0.001 0.001 0.001"/>
+      </geometry>
+    </visual>
+
+    <!-- det fysikken KOLLIDERER med: enkel boks -->
+    <collision>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <geometry>
+        <box size="${chassis_length} ${chassis_width} ${chassis_height}"/>
+      </geometry>
+    </collision>
+
+    <!-- vekt og treghet for en boks -->
+    <inertial>
+      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <mass value="${chassis_mass}"/>
+      <inertia
+        ixx="${chassis_mass/12 * (chassis_width**2  + chassis_height**2)}"
+        iyy="${chassis_mass/12 * (chassis_length**2 + chassis_height**2)}"
+        izz="${chassis_mass/12 * (chassis_length**2 + chassis_width**2)}"
+        ixy="0" ixz="0" iyz="0"/>
+    </inertial>
+
+  </link>
+
+  <!-- ===== Fester chassiset til bakkepunktet ===== -->
+  <joint name="base_joint" type="fixed">
+    <parent link="base_footprint"/>
+    <child link="base_link"/>
+    <origin xyz="0 0 ${chassis_z}" rpy="0 0 0"/>
+  </joint>
+
+</robot>
