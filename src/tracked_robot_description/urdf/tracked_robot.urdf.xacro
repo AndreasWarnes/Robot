@@ -1,13 +1,22 @@
 <?xml version="1.0"?>
 <robot name="tracked_robot" xmlns:xacro="http://www.ros.org/wiki/xacro">
 
-  <!-- ===== Mål (meter / kg) ===== -->
+  <!-- ===== Chassis-mål (meter / kg) ===== -->
   <xacro:property name="chassis_length" value="0.2794"/>
   <xacro:property name="chassis_width"  value="0.1819"/>
   <xacro:property name="chassis_height" value="0.0487"/>
   <xacro:property name="chassis_mass"   value="1.5"/>
-  <!-- høyde fra bakken til senteret av chassiset; justeres når beltene kommer -->
+  <!-- høyde fra bakken til senteret av chassiset -->
   <xacro:property name="chassis_z"      value="0.05"/>
+
+  <!-- ===== Hjul-mål ===== -->
+  <xacro:property name="wheel_radius" value="0.03"/>
+  <xacro:property name="wheel_width"  value="0.04"/>
+  <xacro:property name="wheel_mass"   value="0.1"/>
+  <xacro:property name="wheel_x"      value="0.12"/>
+  <xacro:property name="wheel_y"      value="0.116"/>
+  <!-- hjulsenteret står wheel_radius over bakken; base_link står chassis_z over bakken -->
+  <xacro:property name="wheel_z"      value="${wheel_radius - chassis_z}"/>
 
   <!-- ===== Punkt på bakken under roboten ===== -->
   <link name="base_footprint"/>
@@ -15,9 +24,9 @@
   <!-- ===== Chassis ===== -->
   <link name="base_link">
 
-    <!-- det du SER: Fusion-meshen (mm -> m) -->
+    <!-- det du SER: Fusion-meshen (mm -> m), flyttet så den ligger midt i boksen -->
     <visual>
-      <origin xyz="0 0 0" rpy="0 0 0"/>
+      <origin xyz="-0.0040 -0.0909 0.0163" rpy="0 0 0"/>
       <geometry>
         <mesh filename="package://tracked_robot_description/meshes/chassis.stl" scale="0.001 0.001 0.001"/>
       </geometry>
@@ -50,5 +59,69 @@
     <child link="base_link"/>
     <origin xyz="0 0 ${chassis_z}" rpy="0 0 0"/>
   </joint>
+
+  <!-- ===== Makro: ett hjul + jointen + friksjon ===== -->
+  <xacro:macro name="wheel" params="name x y">
+
+    <link name="${name}_wheel">
+      <visual>
+        <geometry>
+          <cylinder radius="${wheel_radius}" length="${wheel_width}"/>
+        </geometry>
+      </visual>
+      <collision>
+        <geometry>
+          <cylinder radius="${wheel_radius}" length="${wheel_width}"/>
+        </geometry>
+      </collision>
+      <inertial>
+        <mass value="${wheel_mass}"/>
+        <inertia
+          ixx="${wheel_mass/12 * (3*wheel_radius**2 + wheel_width**2)}"
+          iyy="${wheel_mass/12 * (3*wheel_radius**2 + wheel_width**2)}"
+          izz="${wheel_mass/2 * wheel_radius**2}"
+          ixy="0" ixz="0" iyz="0"/>
+      </inertial>
+    </link>
+
+    <!-- continuous = kan rotere fritt; -pi/2 rundt X legger sylinderen på siden -->
+    <joint name="${name}_wheel_joint" type="continuous">
+      <parent link="base_link"/>
+      <child link="${name}_wheel"/>
+      <origin xyz="${x} ${y} ${wheel_z}" rpy="${-pi/2} 0 0"/>
+      <axis xyz="0 0 1"/>
+    </joint>
+
+    <!-- friksjon: fdir1 langs akselen (sidelengs). Lav mu1 = sklir lett sidelengs når den snur -->
+    <gazebo reference="${name}_wheel">
+      <mu1>0.3</mu1>
+      <mu2>1.0</mu2>
+      <fdir1>0 0 1</fdir1>
+    </gazebo>
+
+  </xacro:macro>
+
+  <!-- ===== Fire hjul ===== -->
+  <xacro:wheel name="front_left"  x="${wheel_x}"  y="${wheel_y}"/>
+  <xacro:wheel name="rear_left"   x="${-wheel_x}" y="${wheel_y}"/>
+  <xacro:wheel name="front_right" x="${wheel_x}"  y="${-wheel_y}"/>
+  <xacro:wheel name="rear_right"  x="${-wheel_x}" y="${-wheel_y}"/>
+
+  <!-- ===== Kjøring: DiffDrive styrer venstre og høyre side, lytter på cmd_vel ===== -->
+  <gazebo>
+    <plugin filename="gz-sim-diff-drive-system" name="gz::sim::systems::DiffDrive">
+      <left_joint>front_left_wheel_joint</left_joint>
+      <left_joint>rear_left_wheel_joint</left_joint>
+      <right_joint>front_right_wheel_joint</right_joint>
+      <right_joint>rear_right_wheel_joint</right_joint>
+      <!-- "effektiv" sporvidde; større tall = raskere sving per kommando -->
+      <wheel_separation>${3*wheel_y}</wheel_separation>
+      <wheel_radius>${wheel_radius}</wheel_radius>
+      <topic>cmd_vel</topic>
+      <odom_topic>odom</odom_topic>
+      <frame_id>odom</frame_id>
+      <child_frame_id>base_footprint</child_frame_id>
+    </plugin>
+  </gazebo>
 
 </robot>
