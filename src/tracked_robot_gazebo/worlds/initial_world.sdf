@@ -1,0 +1,286 @@
+<?xml version="1.0"?>
+<!--
+  Testverden for beltegående snøfreser (Gazebo Harmonic, SDF 1.9)
+
+  Oversikt (sett ovenfra, x mot huset):
+    x = -8 .. -2   vei (langs y)
+    x = -2 .. 10   innkjørsel, 4 m bred
+    x = 11 .. 19   hus med garasjeport mot innkjørselen
+
+  Forslag til spawn-posisjon for roboten: på veien, x=-5 y=0 z=0.3, med nesa mot +x.
+-->
+<sdf version="1.9">
+  <world name="driveway_world">
+
+    <physics name="1ms" type="ignored">
+      <max_step_size>0.001</max_step_size>
+      <real_time_factor>1.0</real_time_factor>
+    </physics>
+
+    <!-- Systemplugins: uten disse skjer ingenting -->
+    <plugin filename="gz-sim-physics-system" name="gz::sim::systems::Physics"/>
+    <plugin filename="gz-sim-user-commands-system" name="gz::sim::systems::UserCommands"/>
+    <plugin filename="gz-sim-scene-broadcaster-system" name="gz::sim::systems::SceneBroadcaster"/>
+    <plugin filename="gz-sim-sensors-system" name="gz::sim::systems::Sensors">
+      <render_engine>ogre2</render_engine>
+    </plugin>
+    <plugin filename="gz-sim-imu-system" name="gz::sim::systems::Imu"/>
+
+    <scene>
+      <ambient>0.5 0.5 0.5 1</ambient>
+      <background>0.7 0.8 0.95 1</background>
+      <grid>false</grid>
+    </scene>
+
+    <light type="directional" name="sun">
+      <cast_shadows>true</cast_shadows>
+      <pose>0 0 10 0 0 0</pose>
+      <diffuse>0.9 0.9 0.9 1</diffuse>
+      <specular>0.2 0.2 0.2 1</specular>
+      <direction>-0.5 0.2 -0.9</direction>
+    </light>
+
+    <!-- Plen / bakke -->
+    <model name="ground_plane">
+      <static>true</static>
+      <link name="link">
+        <collision name="collision">
+          <geometry><plane><normal>0 0 1</normal><size>60 60</size></plane></geometry>
+          <surface><friction><ode><mu>0.8</mu><mu2>0.8</mu2></ode></friction></surface>
+        </collision>
+        <visual name="visual">
+          <geometry><plane><normal>0 0 1</normal><size>60 60</size></plane></geometry>
+          <material>
+            <ambient>0.25 0.45 0.2 1</ambient>
+            <diffuse>0.25 0.45 0.2 1</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- Vei langs y-aksen -->
+    <model name="road">
+      <static>true</static>
+      <pose>-5 0 0.02 0 0 0</pose>
+      <link name="link">
+        <collision name="collision">
+          <geometry><box><size>6 40 0.04</size></box></geometry>
+          <surface><friction><ode><mu>0.9</mu><mu2>0.9</mu2></ode></friction></surface>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>6 40 0.04</size></box></geometry>
+          <material>
+            <ambient>0.3 0.3 0.3 1</ambient>
+            <diffuse>0.3 0.3 0.3 1</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- Innkjørsel fra veien til garasjen -->
+    <model name="driveway">
+      <static>true</static>
+      <pose>4 0 0.02 0 0 0</pose>
+      <link name="link">
+        <collision name="collision">
+          <geometry><box><size>12 4 0.04</size></box></geometry>
+          <surface><friction><ode><mu>0.9</mu><mu2>0.9</mu2></ode></friction></surface>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>12 4 0.04</size></box></geometry>
+          <material>
+            <ambient>0.4 0.4 0.4 1</ambient>
+            <diffuse>0.4 0.4 0.4 1</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- Isflekk midt i innkjørselen: svært lav friksjon -->
+    <model name="ice_patch">
+      <static>true</static>
+      <pose>5 0 0.0425 0 0 0</pose>
+      <link name="link">
+        <collision name="collision">
+          <geometry><box><size>2 2 0.005</size></box></geometry>
+          <surface><friction><ode><mu>0.05</mu><mu2>0.05</mu2></ode></friction></surface>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>2 2 0.005</size></box></geometry>
+          <material>
+            <ambient>0.75 0.85 0.95 1</ambient>
+            <diffuse>0.75 0.85 0.95 1</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- Brøytekanter langs innkjørselen (venstre og høyre) -->
+    <model name="snowbank_driveway_left">
+      <static>true</static>
+      <pose>4.75 2.5 0.25 0 0 0</pose>
+      <link name="link">
+        <collision name="collision">
+          <geometry><box><size>10.5 0.8 0.5</size></box></geometry>
+          <surface><friction><ode><mu>0.3</mu><mu2>0.3</mu2></ode></friction></surface>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>10.5 0.8 0.5</size></box></geometry>
+          <material>
+            <ambient>0.95 0.95 0.97 1</ambient>
+            <diffuse>0.95 0.95 0.97 1</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <model name="snowbank_driveway_right">
+      <static>true</static>
+      <pose>4.75 -2.5 0.25 0 0 0</pose>
+      <link name="link">
+        <collision name="collision">
+          <geometry><box><size>10.5 0.8 0.5</size></box></geometry>
+          <surface><friction><ode><mu>0.3</mu><mu2>0.3</mu2></ode></friction></surface>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>10.5 0.8 0.5</size></box></geometry>
+          <material>
+            <ambient>0.95 0.95 0.97 1</ambient>
+            <diffuse>0.95 0.95 0.97 1</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- Brøytekanten som brøytebilen legger igjen tvers over innkjørselen.
+         30 cm høy: en god første test av om roboten kommer seg over. -->
+    <model name="plow_ridge_driveway_entrance">
+      <static>true</static>
+      <pose>-1.5 0 0.19 0 0 0</pose>
+      <link name="link">
+        <collision name="collision">
+          <geometry><box><size>0.8 4 0.3</size></box></geometry>
+          <surface><friction><ode><mu>0.3</mu><mu2>0.3</mu2></ode></friction></surface>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.8 4 0.3</size></box></geometry>
+          <material>
+            <ambient>0.92 0.92 0.95 1</ambient>
+            <diffuse>0.92 0.92 0.95 1</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- Brøytekanter langs veien, på husets side (med åpning for innkjørselen) -->
+    <model name="snowbank_road_house_side_north">
+      <static>true</static>
+      <pose>-1.5 11.5 0.3 0 0 0</pose>
+      <link name="link">
+        <collision name="collision">
+          <geometry><box><size>0.8 17 0.6</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.8 17 0.6</size></box></geometry>
+          <material>
+            <ambient>0.95 0.95 0.97 1</ambient>
+            <diffuse>0.95 0.95 0.97 1</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <model name="snowbank_road_house_side_south">
+      <static>true</static>
+      <pose>-1.5 -11.5 0.3 0 0 0</pose>
+      <link name="link">
+        <collision name="collision">
+          <geometry><box><size>0.8 17 0.6</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.8 17 0.6</size></box></geometry>
+          <material>
+            <ambient>0.95 0.95 0.97 1</ambient>
+            <diffuse>0.95 0.95 0.97 1</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- Brøytekant på motsatt side av veien -->
+    <model name="snowbank_road_far_side">
+      <static>true</static>
+      <pose>-8.5 0 0.3 0 0 0</pose>
+      <link name="link">
+        <collision name="collision">
+          <geometry><box><size>0.8 40 0.6</size></box></geometry>
+        </collision>
+        <visual name="visual">
+          <geometry><box><size>0.8 40 0.6</size></box></geometry>
+          <material>
+            <ambient>0.95 0.95 0.97 1</ambient>
+            <diffuse>0.95 0.95 0.97 1</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+    <!-- Lite hus: vegger + saltak. Posisjonene inni er relative til modellen. -->
+    <model name="house">
+      <static>true</static>
+      <pose>15 0 0 0 0 0</pose>
+      <link name="link">
+        <!-- Husets kropp, 8 x 10 x 3 m -->
+        <collision name="body_collision">
+          <pose>0 0 1.5 0 0 0</pose>
+          <geometry><box><size>8 10 3</size></box></geometry>
+        </collision>
+        <visual name="body_visual">
+          <pose>0 0 1.5 0 0 0</pose>
+          <geometry><box><size>8 10 3</size></box></geometry>
+          <material>
+            <ambient>0.6 0.15 0.1 1</ambient>
+            <diffuse>0.6 0.15 0.1 1</diffuse>
+          </material>
+        </visual>
+
+        <!-- Garasjeport mot innkjørselen (bare visuell) -->
+        <visual name="garage_door_visual">
+          <pose>-4.02 0 1.1 0 0 0</pose>
+          <geometry><box><size>0.05 3 2.2</size></box></geometry>
+          <material>
+            <ambient>0.9 0.9 0.85 1</ambient>
+            <diffuse>0.9 0.9 0.85 1</diffuse>
+          </material>
+        </visual>
+
+        <!-- Saltak: to skrå plater, 30 grader (0.5236 rad), møne langs x -->
+        <collision name="roof_left_collision">
+          <pose>0 2.5 4.44 -0.5236 0 0</pose>
+          <geometry><box><size>8.6 6.2 0.15</size></box></geometry>
+        </collision>
+        <visual name="roof_left_visual">
+          <pose>0 2.5 4.44 -0.5236 0 0</pose>
+          <geometry><box><size>8.6 6.2 0.15</size></box></geometry>
+          <material>
+            <ambient>0.15 0.15 0.15 1</ambient>
+            <diffuse>0.15 0.15 0.15 1</diffuse>
+          </material>
+        </visual>
+        <collision name="roof_right_collision">
+          <pose>0 -2.5 4.44 0.5236 0 0</pose>
+          <geometry><box><size>8.6 6.2 0.15</size></box></geometry>
+        </collision>
+        <visual name="roof_right_visual">
+          <pose>0 -2.5 4.44 0.5236 0 0</pose>
+          <geometry><box><size>8.6 6.2 0.15</size></box></geometry>
+          <material>
+            <ambient>0.15 0.15 0.15 1</ambient>
+            <diffuse>0.15 0.15 0.15 1</diffuse>
+          </material>
+        </visual>
+      </link>
+    </model>
+
+  </world>
+</sdf>
